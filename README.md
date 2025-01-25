@@ -1,5 +1,5 @@
 # Github-Activity CLI
-Sample solution for [github-activity](url) challenge from [roadmap.sh](roadmap.sh)
+Sample solution for [github-activity](https://roadmap.sh/projects/github-user-activity) challenge from [roadmap.sh](roadmap.sh)
 
 <br>
 
