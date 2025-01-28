@@ -10,6 +10,6 @@ $username = $argv[1] ?? null;
 if ($username) {
     EventController::fetch($username);
 } else {
-    echo "Usage: php github-activity-cli.php {username}" . N;
+    echo "Usage: php github-activity.php {username}" . N;
     exit;
 }

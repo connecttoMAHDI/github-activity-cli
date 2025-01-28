@@ -31,8 +31,13 @@ class EventController
             case 200:
                 $data = json_decode($response, true);
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    echo "JSON Decode Error: " . json_last_error_msg(), N;
+                    echo "Error: Failed to decode JSON response. " . json_last_error_msg(), N;
                     exit;
+                }
+
+                if (empty($data)) {
+                    echo "No public activities found for the user.", N;
+                    break;
                 }
 
                 foreach ($data as $event) {
@@ -40,25 +45,55 @@ class EventController
                 }
                 break;
             case 301:
-                echo "moved from here";
+                echo "The requested URL has been permanently moved to a new location.", N;
                 exit;
+
             case 304:
-                echo "No New Events.", N;
+                echo "No new events since your last request.", N;
                 break;
+
             case 403:
-                echo "Forbidden: " . curl_error($ch), N;
+                echo "Error: Access forbidden.", N;
                 break;
+
             case 404:
-                echo "Username not found!", N;
+                echo "Error: GitHub username not found. Please ensure the username is correct.", N;
                 break;
+
             case 503:
-                echo "Service is not available.";
+                echo "Service Unavailable: GitHub is temporarily down. Please try again later.", N;
                 break;
+
             default:
-                echo "Unknow Error: " . curl_error($ch);
+                echo "An unknown error occurred. Error details: " . curl_error($ch), N;
         };
+
+        // Close the handler to free-up resources
         curl_close($ch);
         exit;
+    }
+
+    private static function formatRepoEvent(string $action, array $payload, string $repoName): string
+    {
+        $refType = $payload['ref_type'] ?? 'unknown type';
+        $refName = $payload['ref'] ?? null;
+        $forkeeName = $payload['forkee']['full_name'] ?? null;
+
+        if ($action === 'Created' || $action === 'Deleted') {
+            if ($refType === 'repository' && $refName === null) {
+                return "- {$action} the repository named {$repoName}";
+            }
+            return "- {$action} a {$refType} named {$refName} in {$repoName}";
+        }
+
+        if ($action === 'Forked') {
+            if ($forkeeName === null) {
+                return "- Forked the repository {$repoName}";
+            }
+            return "- Forked {$repoName} to {$forkeeName}";
+        }
+
+        return "- Unknown repository action for {$repoName}";
     }
 
     private static function formatEvent(array $event): string
@@ -72,27 +107,13 @@ class EventController
                 return "- Commented on a commit in {$repoName}";
 
             case EventType::CREATE->value:
-                $refType = $payload['ref_type'] ?? 'unknown type';
-                $refName = $payload['ref'] ?? null;
-                if ($refType === 'repository' && $refName === null) {
-                    return "- Created a repository named {$repoName}";
-                }
-                return "- Created a {$refType} named {$refName} in {$repoName}";
+                return self::formatRepoEvent('Created', $payload, $repoName);
 
             case EventType::DELETE->value:
-                $refType = $payload['ref_type'] ?? 'unknown type';
-                $refName = $payload['ref'] ?? null;
-                if ($refType === 'repository' && $refName === null) {
-                    return "- Deleted the repository named {$repoName}";
-                }
-                return "- Deleted a {$refType} named {$refName} in {$repoName}";
+                return self::formatRepoEvent('Deleted', $payload, $repoName);
 
             case EventType::FORK->value:
-                $forkeeName = $payload['forkee']['full_name'] ?? null;
-                if ($forkeeName === null) {
-                    return "- Forked the repository {$repoName}";
-                }
-                return "- Forked {$repoName} to {$forkeeName}";
+                return self::formatRepoEvent('Forked', $payload, $repoName);
 
             case EventType::GOLLUM->value:
                 return "- Updated the wiki pages in {$repoName}";
