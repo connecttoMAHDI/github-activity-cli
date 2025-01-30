@@ -6,6 +6,7 @@ A lightweight CLI tool that fetches and displays a GitHub user's public activity
 
 ## Features
 - Fetches public activities of any GitHub user.
+- Caches data for **15 minutes** using Redis and the Predis package for faster subsequent fetches.
 - Displays activity details like repository creation, commits, pull requests, and more.
 - Handles common errors gracefully (e.g., username not found, rate limits, service outages).
 - Simple and easy-to-use CLI interface.
@@ -26,7 +27,18 @@ Change into the project directory:
 cd github-activity-cli
 ```
 
-### Step 3: Run the CLI
+### Step 3: Start Redis Server
+The CLI uses Redis caching to improve performance. You must start your Redis server before running the script. If you're unfamiliar with Redis, watch this [YouTube tutorial](https://youtu.be/ioCaSHNhIJA?si=okD7eE_Rm92z2Zxd) to get started.
+
+### Step 4: Rename `.env.example` to `.env`
+Before running the script, rename the `.env.example` file to `.env` to configure the required environment variables correctly.
+
+```bash
+mv .env.example .env  # Linux/macOS
+ren .env.example .env  # Windows
+```
+
+### Step 5: Run the CLI
 Use the following command to fetch and display the activity of a GitHub user:
 ```bash
 php github-activity.php {GitHub username}
@@ -34,7 +46,7 @@ php github-activity.php {GitHub username}
 
 ---
 
-## Example Output 
+## Example Output
 Here’s an example of how the CLI output might look:
 ```
 - Created a branch named master in connecttoMAHDI/weather-api
@@ -47,6 +59,14 @@ Here’s an example of how the CLI output might look:
 ---
 
 ## Troubleshooting
+
+### Common Issue: Redis Connection Error
+If you see an error like:
+```
+Connection to Redis refused!
+Ensure the Redis server is running and credentials are correct.
+```
+Make sure Redis is running before executing the script. If Redis is not installed, follow [this tutorial](https://youtu.be/ioCaSHNhIJA?si=okD7eE_Rm92z2Zxd) to install and configure it properly.
 
 ### Common Issue: SSL Certificate Error
 If you encounter an error like this:
@@ -83,3 +103,4 @@ Follow these steps to resolve it:
 
 6. **Restart Services**
    - Restart your web server or PHP service for the changes to take effect.
+
